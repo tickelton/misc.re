@@ -15,22 +15,30 @@ def int_to_scan_string(num):
 def str_to_scan_string(in_str):
     return ' '.join(hex(ord(c))[2:] for c in in_str)
 
-if len(sys.argv) != 6:
-    print("Usage: set_monies.py OLD_MONIES OLD_RANK NAME NEW_MONIES NEW_RANK")
+if len(sys.argv) != 8:
+    print("Usage: set_monies.py OLD_MONIES OLD_RANK OLD_XP NAME NEW_MONIES NEW_RANK NEW_XP")
     sys.exit(1)
 
 monies_str = int_to_scan_string(sys.argv[1])
 rank_str = int_to_scan_string(sys.argv[2])
-name_str = str_to_scan_string(sys.argv[3])
-new_monies = int(sys.argv[4])
-new_rank = int(sys.argv[5])
+xp_str = int_to_scan_string(sys.argv[3])
+name_str = str_to_scan_string(sys.argv[4])
+new_monies = int(sys.argv[5])
+new_rank = int(sys.argv[6])
+new_xp = int(sys.argv[7])
 
 session = frida.attach("snowrunner.exe")
 script = session.create_script("""
     var ranges = Process.enumerateRanges('rw-');
     var candidates = [];
+    var new_monies = %d;
+    var new_rank = %d;
+    var new_xp = %d;
 
     for (var i in ranges) {
+        if (ranges[i].size < 128*1024 || ranges[i].size > 512*1024) {
+            continue;
+        }
         var results = Memory.scanSync(ranges[i].base, ranges[i].size, '%s');
         for (var j in results) {
             // Found old money value in current range, keep looking for 
@@ -38,28 +46,33 @@ script = session.create_script("""
             console.log('range=' + JSON.stringify(ranges[i]));
             console.log('money=' + results[j].address);
             var addr_money = results[j].address;
-            var addr_name = '';
+            //var addr_name = '';
             var addr_rank = '';
-
+            var addr_xp = '';
 
             var new_search = {
-                'base': '0x' + (parseInt(results[j].address, 16) - 64).toString(16),
-                'size':  128
+                'base': '0x' + (parseInt(results[j].address, 16) - 384).toString(16),
+                'size':  768
             }
             console.log('new_search=' + JSON.stringify(new_search));
 
-            var profile_name = Memory.scanSync(ptr(new_search.base), new_search.size, '%s');
-            for (var k in profile_name) {
-                console.log('name=' + profile_name[k].address);
-                addr_name = profile_name[k].address;
-            }
+            //var profile_name = Memory.scanSync(ptr(new_search.base), new_search.size, '%s');
+            //for (var k in profile_name) {
+            //    console.log('name=' + profile_name[k].address);
+            //    addr_name = profile_name[k].address;
+            //}
             var rank = Memory.scanSync(ptr(new_search.base), new_search.size, '%s');
             for (var k in rank) {
                 console.log('rank=' + rank[k].address);
                 addr_rank = rank[k].address;
             }
-            if (addr_name && addr_money && addr_rank) {
-                candidates.push({'name': addr_name, 'rank': addr_rank, 'money': addr_money});
+            var xp = Memory.scanSync(ptr(new_search.base), new_search.size, '%s');
+            for (var k in xp) {
+                console.log('xp=' + xp[k].address);
+                addr_xp = xp[k].address;
+            }
+            if (addr_money && addr_rank && addr_xp) {
+                candidates.push({'rank': addr_rank, 'money': addr_money, 'xp': addr_xp});
             }
         }
     }
@@ -72,13 +85,20 @@ script = session.create_script("""
 
     if (candidates.length == 1) {
         console.log('Updating data!');
-        Memory.writeInt(candidates[0].money, %d);
-        Memory.writeInt(candidates[0].rank, %d);
+        Memory.writeInt(candidates[0].money, new_monies);
+        Memory.writeInt(candidates[0].rank, new_rank);
+        Memory.writeInt(candidates[0].xp, new_xp);
     } else if (candidates.length > 1) {
-        console.log('Ambiguous result. Not updating!');
+        //console.log('Ambiguous result. Not updating!');
+        for (var c in candidates) {
+            console.log('Updating ' + c);
+            Memory.writeInt(candidates[c].money, new_monies);
+            Memory.writeInt(candidates[c].rank, new_rank);
+            Memory.writeInt(candidates[c].xp, new_xp);
+        }
     }
 
-""" % (monies_str, name_str, rank_str, new_monies, new_rank))
+""" % (new_monies, new_rank, new_xp, monies_str, name_str, rank_str, xp_str))
 script.load()
 
 input('Press <Enter> to quit.')
