@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+# Copyright (c) 2020 tick <tickelton@gmail.com>
+# SPDX-License-Identifier:	ISC
+
 import frida
 import sys
 
@@ -72,7 +75,7 @@ new_rank = int(sys.argv[6])
 cur_money_str = int_to_scan_string(int(sys.argv[1]))
 cur_rank_str = int_to_scan_string(cur_rank)
 name_str = str_to_scan_string(sys.argv[4])
-# Since we only get a number of XP points relativ to
+# Since we only get a number of XP points relative to
 # the current rank, we have to calculate the absolute
 # value we need to look for in memory
 total_cur_xp = get_total_xp(cur_rank, cur_xp)
