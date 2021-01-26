@@ -1,0 +1,58 @@
+gifpalette
+==========
+
+gifpalette is a command line tool to export the palette(s) used in
+GIF files.
+
+The output is formatted as Go code so it can be used in Go programs
+to specify custom palettes when generating GIF images with the
+"image/gif" package.
+
+
+Building gifpalette
+-------------------
+
+gifpalette only requires a working installation of Go but has
+no other external dependencies.
+It can simply be build using the go build command:
+
+  # cd gifpalette
+  # go build
+
+
+Running gifpalette
+------------------
+
+gifpalette only requires the input file name as a command line
+argument:
+
+  # ./gifpalette static.gif
+    color.Palette{
+            color.RGBA{0x00, 0x00, 0x00, 0xff},
+            color.RGBA{0x0d, 0x0d, 0x00, 0xff},
+            color.RGBA{0x16, 0x16, 0x00, 0xff},
+            color.RGBA{0x1c, 0x1c, 0x00, 0xff},
+            color.RGBA{0x22, 0x22, 0x00, 0xff},
+            color.RGBA{0x26, 0x26, 0x00, 0xff},
+            color.RGBA{0x2a, 0x2a, 0x00, 0xff},
+            color.RGBA{0x2e, 0x2e, 0x00, 0xff},
+            color.RGBA{0x32, 0x32, 0x00, 0xff},
+            ...
+            color.RGBA{0xff, 0xff, 0xff, 0xff},
+            color.RGBA{0xff, 0xff, 0xff, 0xff},
+            color.RGBA{0x00, 0x00, 0x00, 0x00},
+    }
+
+
+LICENSE
+-------
+
+gifpaletteis distributed under
+the terms of the ISC license.
+See LICENSE.txt for details.
+
+Copyright (C) 2021 <tickelton@gmail.com>
+
+----------------------------------------
+
+

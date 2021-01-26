@@ -1,5 +1,8 @@
 package main
 
+// Copyright (c) 2021 tick <tickelton@gmail.com>
+// SPDX-License-Identifier:	ISC
+
 import (
 	"fmt"
 	"image/color"
@@ -8,8 +11,20 @@ import (
 	"os"
 )
 
+func usage() {
+	fmt.Println(
+		"Usage: ",
+		os.Args[0],
+		" FILENAME",
+	)
+}
+
 func main() {
-	reader, err := os.Open("animated.gif")
+	if len(os.Args[1:]) != 1 {
+		usage()
+		return
+	}
+	reader, err := os.Open(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}
